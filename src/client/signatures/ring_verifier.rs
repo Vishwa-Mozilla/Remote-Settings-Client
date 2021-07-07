@@ -23,14 +23,21 @@ impl Verification for RingVerifier {
         signature: &[u8],
     ) -> Result<(), SignatureError> {
         // 1. Parse the PEM bytes as DER-encoded X.509 Certificate.
-        let pems = x509::parse_certificate_chain(&pem_bytes)?;
-        let certs: Vec<x509::X509Certificate> = pems
+        let pems = match x509::parse_certificate_chain(&pem_bytes) {
+            Ok(pems) => pems,
+            Err(err) => return Err(SignatureError::CertificateContentError(err.to_string())),
+        };
+        let certs: Vec<x509::X509Certificate> = match pems
             .iter()
             .map(|pem| match x509::parse_x509_certificate(&pem) {
                 Ok(cert) => Ok(cert),
                 Err(e) => Err(e),
             })
-            .collect::<Result<Vec<x509::X509Certificate>, _>>()?;
+            .collect::<Result<Vec<x509::X509Certificate>, _>>()
+        {
+            Ok(certs) => certs,
+            Err(err) => return Err(SignatureError::CertificateContentError(err.to_string())),
+        };
 
         // 2. Verify that root hash matches the SHA256 fingerprint of the root certificate (DER content)
         let root_hash_bytes = hex::decode(&root_hash.replace(":", ""))
@@ -42,7 +49,7 @@ impl Verification for RingVerifier {
         root_fingerprint_hash.update(&root_pem.contents);
         let root_fingerprint_bytes = root_fingerprint_hash.finish().as_ref().to_vec();
         if root_fingerprint_bytes != root_hash_bytes {
-            return Err(SignatureError::CertificateHasWrongRoot(hex::encode(
+            return Err(SignatureError::InvalidCertificateIssuer(hex::encode(
                 root_fingerprint_bytes,
             )));
         }
@@ -99,7 +106,7 @@ impl Verification for RingVerifier {
             .unwrap_or("")
             .to_string();
         if leaf_subject != subject_cn {
-            return Err(SignatureError::WrongSignerName(leaf_subject));
+            return Err(SignatureError::InvalidCertificateSubject(leaf_subject));
         }
         // 6. Use the chain's end-entity (leaf) certificate to verify that the "signature" property matches the contents of the data.
         let public_key_bytes = leaf_cert

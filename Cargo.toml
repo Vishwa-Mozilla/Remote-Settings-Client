@@ -36,4 +36,4 @@ oid-registry = { version = "0.1.1", optional = true }
 x509-parser = "0.9.2"
 
 # rc_crypto verifier
-rc_crypto = { git = "https://github.com/leplatrem/application-services", rev = "4229396cc23a303fc7b1e8a5b94638a5a7d7ea41", optional = true }
+rc_crypto = { git = "https://github.com/leplatrem/application-services", rev = "ebb683173790c266031ed3bc63a4b68301295a44", optional = true }
