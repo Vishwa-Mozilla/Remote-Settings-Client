@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 use super::{x509, SignatureError, Verification};
+use hex;
 use ring::digest::{Context, SHA256};
 use ring::signature;
 use x509_parser::time::ASN1Time;
@@ -32,12 +33,15 @@ impl Verification for RingVerifier {
             .collect::<Result<Vec<x509::X509Certificate>, _>>()?;
 
         // 2. Verify that root hash matches the SHA256 fingerprint of the root certificate (DER content)
+        let root_hash_bytes = hex::decode(&root_hash.replace(":", ""))
+            .or_else(|err| Err(SignatureError::RootHashFormatError(err.to_string())))?;
+
         let root_pem = pems.first().unwrap();
 
         let mut root_fingerprint_hash = Context::new(&SHA256);
         root_fingerprint_hash.update(&root_pem.contents);
         let root_fingerprint_bytes = root_fingerprint_hash.finish().as_ref().to_vec();
-        if root_fingerprint_bytes != root_hash {
+        if root_fingerprint_bytes != root_hash_bytes {
             return Err(SignatureError::CertificateHasWrongRoot(hex::encode(
                 root_fingerprint_bytes,
             )));
@@ -105,7 +109,13 @@ impl Verification for RingVerifier {
             .data;
         let signature_alg = &signature::ECDSA_P384_SHA384_FIXED;
         let public_key = signature::UnparsedPublicKey::new(signature_alg, &public_key_bytes);
-        match public_key.verify(&message, &signature) {
+
+        let decoded_signature = match base64::decode_config(&signature, base64::URL_SAFE) {
+            Ok(s) => s,
+            Err(err) => return Err(SignatureError::BadSignatureContent(err.to_string())),
+        };
+
+        match public_key.verify(&message, &decoded_signature) {
             Ok(_) => Ok(()),
             Err(err) => Err(SignatureError::MismatchError(err.to_string())),
         }
