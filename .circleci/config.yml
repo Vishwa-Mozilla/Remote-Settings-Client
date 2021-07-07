@@ -38,8 +38,8 @@ jobs:
 
               # Download and compile NSS.
               mkdir libs && pushd libs
-              wget https://github.com/mozilla/application-services/raw/v73.0.2/libs/build-all.sh
-              wget https://github.com/mozilla/application-services/raw/v73.0.2/libs/build-nss-desktop.sh
+              wget https://github.com/leplatrem/application-services/raw/ebb683173790c266031ed3bc63a4b68301295a44/libs/build-all.sh
+              wget https://github.com/leplatrem/application-services/raw/ebb683173790c266031ed3bc63a4b68301295a44/libs/build-nss-desktop.sh
               touch build-sqlcipher-desktop.sh  # no-op.
               chmod +x *.sh
               ./build-all.sh desktop
