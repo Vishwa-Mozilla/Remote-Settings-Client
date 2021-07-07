@@ -12,7 +12,7 @@ impl Verification for DummyVerifier {
         &self,
         _: u64,
         _: &[u8],
-        _: &[u8],
+        _: &str,
         _: &str,
         _: &[u8],
         _: &[u8],

@@ -16,7 +16,7 @@ impl Verification for RingVerifier {
         &self,
         epoch_seconds: u64,
         pem_bytes: &[u8],
-        root_hash: &[u8],
+        root_hash: &str,
         subject_cn: &str,
         message: &[u8],
         signature: &[u8],
