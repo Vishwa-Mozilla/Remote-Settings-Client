@@ -12,7 +12,7 @@ ring_verifier = ["oid-registry", "ring"]
 rc_crypto_verifier = ["rc_crypto"]
 
 [dev-dependencies]
-env_logger = "0.8.3"
+env_logger = "0.9.0"
 httpmock = "0.5.6"
 viaduct-reqwest = { git = "https://github.com/mozilla/application-services", rev = "ab5f2120dc7b3de9384b3f1d5167efb8b3fabcd1"}
 mock_instant = "0.2.1"
